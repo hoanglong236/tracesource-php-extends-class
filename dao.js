@@ -22,7 +22,7 @@ const createSourceFileTable = async () => {
   const sql =
     `CREATE TABLE ${SOURCE_FILE_TABLE} ( ` +
     `  id INT, ` +
-    `  file_path VARCHAR(500), ` +
+    `  folder_path VARCHAR(500), ` +
     `  file_name VARCHAR(150), ` +
     `)`;
 
@@ -80,9 +80,9 @@ const executeInsertTableQuery = async (sql, queryParams, tableName) => {
     });
 };
 
-const insertSourceFileTable = async ({ id, filePath, fileName }) => {
+const insertSourceFileTable = async ({ id, folderPath, fileName }) => {
   const sql = `INSERT INTO ${SOURCE_FILE_TABLE} VALUES($1, $2, $3)`;
-  const params = [id, filePath, fileName];
+  const params = [id, folderPath, fileName];
 
   await executeInsertTableQuery(sql, params, SOURCE_FILE_TABLE);
 };
@@ -148,7 +148,7 @@ const getSourceFileByFileId = async (fileId) => {
     .then((res) => {
       return {
         id: res.rows[0].id,
-        filePath: res.rows[0].file_path,
+        folderPath: res.rows[0].folder_path,
         fileName: res.rows[0].file_name,
       };
     })
@@ -158,18 +158,18 @@ const getSourceFileByFileId = async (fileId) => {
     });
 };
 
-const getSourceFileByFilePathAndFileName = async (filePath, fileName) => {
+const getSourceFileByFolderPathAndFileName = async ({folderPath, fileName}) => {
   const sql =
     `SELECT * FROM ${SOURCE_FILE_TABLE} ` +
-    `WHERE filePath = $1 AND fileName = $2`;
-  const params = [filePath, fileName];
+    `WHERE folder_path = $1 AND file_name = $2`;
+  const params = [folderPath, fileName];
 
   return await postGreConnection
     .query(sql, params)
     .then((res) => {
       return {
         id: res.rows[0].id,
-        filePath: res.rows[0].file_path,
+        folderPath: res.rows[0].folder_path,
         fileName: res.rows[0].file_name,
       };
     })
@@ -179,18 +179,18 @@ const getSourceFileByFilePathAndFileName = async (filePath, fileName) => {
     });
 };
 
-const getSourceFileByFullFilePath = async (fullFilePath) => {
+const getSourceFileByFilePath = async (filePath) => {
   const sql =
     `SELECT * FROM ${SOURCE_FILE_TABLE} ` +
-    `WHERE (filePath || '\\\\' || fileName) = $1`;
-  const params = [fullFilePath];
+    `WHERE (folder_path || '\\\\' || file_name) = $1`;
+  const params = [filePath];
 
   return await postGreConnection
     .query(sql, params)
     .then((res) => {
       return {
         id: res.rows[0].id,
-        filePath: res.rows[0].file_path,
+        folderPath: res.rows[0].folder_path,
         fileName: res.rows[0].file_name,
       };
     })
@@ -277,8 +277,8 @@ module.exports = {
   insertInvokerFunctionTable,
   deleteAllRecordsInTable,
   getSourceFileByFileId,
-  getSourceFileByFilePathAndFileName,
-  getSourceFileByFullFilePath,
+  getSourceFileByFolderPathAndFileName,
+  getSourceFileByFilePath,
   getSourceClassesByFileId,
   getChildSourceClassesByClassId,
   getSourceFunctionsByClassId,
