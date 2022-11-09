@@ -6,15 +6,14 @@ const {
   TRACE_FOLDER_PATHS,
 } = require("./data");
 const { insertSourceFileTable } = require("./dao");
-const { arrayChunk, arraysPromisePool } = require("./utils");
+const {
+  arrayChunk,
+  arraysPromisePool,
+  checkStringIncludeKeywords,
+} = require("./utils");
 
 const isIgnoreFolder = (folderPath) => {
-  for (const ignoreFolder of IGNORE_FOLDERS) {
-    if (folderPath.includes(ignoreFolder)) {
-      return true;
-    }
-  }
-  return false;
+  return checkStringIncludeKeywords(folderPath, IGNORE_FOLDERS);
 };
 
 const checkFileExtension = (fileName) => {
@@ -32,9 +31,9 @@ const checkFileExtension = (fileName) => {
 };
 
 const convertFilePathToFile = (filePath) => {
-  const lastDotSymbolIndex = fileName.lastIndexOf(".");
-  const folderPath = fileName.substring(0, lastDotSymbolIndex);
-  const fileName = fileName.substring(lastDotSymbolIndex + 1);
+  const lastBackSlashIndex = fileName.lastIndexOf("\\");
+  const folderPath = fileName.substring(0, lastBackSlashIndex);
+  const fileName = fileName.substring(lastBackSlashIndex + 1);
 
   return {
     folderPath: folderPath,
@@ -58,7 +57,10 @@ const traceFileDPS = (filePath) => {
 
   const currentFile = convertFilePathToFile(filePath);
   if (checkFileExtension(currentFile.fileName)) {
-    tracedFiles.push(currentFile);
+    tracedFiles.push({
+      ...currentFile,
+      id: tracedFiles.length,
+    });
   }
 };
 

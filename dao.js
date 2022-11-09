@@ -46,8 +46,8 @@ const createSourceFunctionTable = async () => {
     `CREAT TABLE ${SOURCE_FUNCTION_TABLE} ( ` +
     `  id INT, ` +
     `  signature VARCHAR(500), ` +
-    `  function_name VARCHAR(150), ` +
-    `  class_id INT` +
+    `  name VARCHAR(150), ` +
+    `  file_id INT` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_FUNCTION_TABLE);
@@ -59,7 +59,7 @@ const createInvokerFunctionTable = async () => {
     `  id INT, ` +
     `  line_number INT, ` +
     `  line_content VARCHAER(500), ` +
-    `  class_id INT, ` +
+    `  file_id INT, ` +
     `  invoked_function_id INT ` +
     `)`;
 
@@ -94,14 +94,9 @@ const insertSourceClassTable = async ({ id, className, fileId, parentId }) => {
   await executeInsertTableQuery(sql, params, CLASS_FILE_TABLE);
 };
 
-const insertSourceFunctionTable = async ({
-  id,
-  functionSignature,
-  functionName,
-  classId,
-}) => {
+const insertSourceFunctionTable = async ({ id, signature, name, fileId }) => {
   const sql = `INSERT INTO ${SOURCE_FUNCTION_TABLE} VALUES($1, $2, $3, $4)`;
-  const params = [id, functionSignature, functionName, classId];
+  const params = [id, signature, name, fileId];
 
   await executeInsertTableQuery(sql, params, SOURCE_FUNCTION_TABLE);
 };
@@ -110,17 +105,11 @@ const insertInvokerFunctionTable = async ({
   id,
   lineNumber,
   lineContent,
-  classId,
+  fileId,
   invokedFunctionId,
 }) => {
   const sql = `INSERT INTO ${INVOKER_FUNCTION_TABLE} VALUES($1, $2, $3, $4, $5)`;
-  const params = [
-    id,
-    lineNumber,
-    lineContent,
-    classId,
-    invokedFunctionId,
-  ];
+  const params = [id, lineNumber, lineContent, fileId, invokedFunctionId];
 
   await executeInsertTableQuery(sql, params, INVOKER_FUNCTION_TABLE);
 };
@@ -136,6 +125,26 @@ const deleteAllRecordsInTable = async (tableName) => {
     .catch((err) => {
       console.log(`Delete old records from table ${tableName} failed!!!`);
       console.log(err);
+    });
+};
+
+const getAllSourceFiles = async () => {
+  const sql = `SELECT * FROM ${SOURCE_FILE_TABLE}`;
+
+  return await postGreConnection
+    .query(sql)
+    .then((res) => {
+      return res.rows.map((row) => {
+        return {
+          id: row.id,
+          folderPath: row.folder_path,
+          fileName: row.file_name,
+        };
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return;
     });
 };
 
@@ -158,7 +167,10 @@ const getSourceFileByFileId = async (fileId) => {
     });
 };
 
-const getSourceFileByFolderPathAndFileName = async ({folderPath, fileName}) => {
+const getSourceFileByFolderPathAndFileName = async ({
+  folderPath,
+  fileName,
+}) => {
   const sql =
     `SELECT * FROM ${SOURCE_FILE_TABLE} ` +
     `WHERE folder_path = $1 AND file_name = $2`;
@@ -213,7 +225,7 @@ const getSourceClassesByFileId = async (fileId) => {
           className: row.class_name,
           fileId: row.file_id,
           parentId: row.parent_id,
-        }
+        };
       });
     })
     .catch((err) => {
@@ -244,9 +256,9 @@ const getChildSourceClassesByClassId = async (classId) => {
     });
 };
 
-const getSourceFunctionsByClassId = async (classId) => {
-  const sql = `SELECT * FROM ${SOURCE_FUNCTION_TABLE} WHERE class_id = $1`;
-  const params = [classId];
+const getSourceFunctionsByFileId = async (fileId) => {
+  const sql = `SELECT * FROM ${SOURCE_FUNCTION_TABLE} WHERE file_id = $1`;
+  const params = [fileId];
 
   return await postGreConnection
     .query(sql, params)
@@ -254,9 +266,9 @@ const getSourceFunctionsByClassId = async (classId) => {
       return res.rows.map((row) => {
         return {
           id: row.id,
-          functionSignature: row.signature,
-          functionName: row.function_name,
-          classId: row.class_id,
+          signature: row.signature,
+          name: row.name,
+          fileId: row.file_id,
         };
       });
     })
@@ -276,10 +288,11 @@ module.exports = {
   insertSourceFunctionTable,
   insertInvokerFunctionTable,
   deleteAllRecordsInTable,
+  getAllSourceFiles,
   getSourceFileByFileId,
   getSourceFileByFolderPathAndFileName,
   getSourceFileByFilePath,
   getSourceClassesByFileId,
   getChildSourceClassesByClassId,
-  getSourceFunctionsByClassId,
+  getSourceFunctionsByFileId,
 };

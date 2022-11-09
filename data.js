@@ -8,7 +8,7 @@ const FILE_EXTENSIONS = {
 
 const ROOT_FILES = [
   {
-    filePath: "",
+    folderPath: "",
     fileName: "",
   },
 ];

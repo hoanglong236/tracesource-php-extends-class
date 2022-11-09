@@ -1,5 +1,5 @@
-const { Pool } = require('pg');
-const dotenv = require('dotenv');
+const { Pool } = require("pg");
+const dotenv = require("dotenv");
 
 dotenv.config();
 
@@ -11,8 +11,10 @@ const postGreConnection = new Pool({
   database: process.env.PG_DATABASE,
 });
 
-await postGreConnection.connect();
+(async () => {
+  await postGreConnection.connect();
+})();
 
 module.exports = {
   postGreConnection,
-}
+};

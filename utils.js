@@ -18,7 +18,25 @@ const arraysPromisePool = async (handler, arrays) => {
   await Promise.all(arraysHandler);
 };
 
+const checkLineStartWithDoubleSlash = (line) => {
+  if (line.startWiths("////")) {
+    return true;
+  }
+  return false;
+};
+
+const checkStringIncludeKeywords = (str, keywords) => {
+  for (const keyword of keywords) {
+    if (str.includes(keyword)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 module.exports = {
   arrayChunk,
   arraysPromisePool,
+  checkLineStartWithDoubleSlash,
+  checkStringIncludeKeywords,
 };
