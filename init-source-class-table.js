@@ -1,19 +1,21 @@
-const LineByLine = require("n-readlines");
+const LineByLine = require('n-readlines');
 
 const {
   checkLineStartWithDoubleSlash,
   arrayChunk,
   arraysPromisePool,
-} = require("./utils");
-const { getAllSourceFiles, insertSourceClassTable } = require("./dao");
+} = require('./utils');
+const { getAllSourceFiles, insertSourceClassTable } = require('./dao');
 
-const separateDeclareClassLine = (line) => {
-  const classKeyword = "class ";
+const convertDeclareClassLineToClassObject = (line) => {
+  const classKeyword = 'class ';
   const classKeywordIndex = line.indexOf(classKeyword);
-  const extendsKeyword = "extends ";
+  const extendsKeyword = 'extends ';
   const extendsKeywordIndex = line.indexOf(extendsKeyword);
-  const openCurlyBracketsSymbol = "{";
-  const openCurlyBracketsSymbolIndex = line.lastIndexOf(openCurlyBracketsSymbol);
+  const openCurlyBracketsSymbol = '{';
+  const openCurlyBracketsSymbolIndex = line.lastIndexOf(
+    openCurlyBracketsSymbol,
+  );
   const classNameStartIndex = classKeywordIndex + classKeyword.length;
 
   if (extendsKeywordIndex === -1) {
@@ -33,13 +35,13 @@ const separateDeclareClassLine = (line) => {
   };
 };
 
-const getClassObjectsInFile = async ({ id, fileName, folderPath }) => {
-  const lineReader = new LineByLine(folderPath + "\\" + fileName);
-  const classKeyword = "class ";
-  const openCurlyBracketsSymbol = "{";
+const getClassObjectsInFile = async ({ id, folderPath, fileName }) => {
+  const lineReader = new LineByLine(folderPath + '\\' + fileName);
+  const classKeyword = 'class ';
+  const openCurlyBracketsSymbol = '{';
   const classObjects = [];
-  let line = "";
-  let declareClassLine = "";
+  let line = '';
+  let declareClassLine = '';
   let isDeclareClassLineInMultpleRows = false;
 
   while ((line = lineReader.next())) {
@@ -54,12 +56,12 @@ const getClassObjectsInFile = async ({ id, fileName, folderPath }) => {
       if (!isDeclareClassLineInMultpleRows) {
         continue;
       }
-      declareClassLine += " " + line;
+      declareClassLine += ' ' + line;
     }
 
     if (declareClassLine.includes(openCurlyBracketsSymbol)) {
       const classObject = {
-        ...separateDeclareClassLine(line),
+        ...convertDeclareClassLineToClassObject(declareClassLine),
         fileId: id,
       };
       classObjects.push(classObject);
@@ -72,8 +74,9 @@ const getClassObjectsInFile = async ({ id, fileName, folderPath }) => {
   return classObjects;
 };
 
-const getSourceClassesFromFiles = async (files) => {
-  const fileChunks = arrayChunk(files, 500);
+const getSourceClassesByTraceFiles = async (files) => {
+  const chunkCount = files.length / 10 + 1;
+  const fileChunks = arrayChunk(files, chunkCount);
   const classObjects = [];
   const classNameMap = new Map();
 
@@ -101,15 +104,16 @@ const getSourceClassesFromFiles = async (files) => {
 
 const initSourceClassTable = async () => {
   const sourceFiles = await getAllSourceFiles();
-  const sourceClasses = await getSourceClassesFromFiles(sourceFiles);
+  const sourceClasses = await getSourceClassesByTraceFiles(sourceFiles);
 
-  const sourceClassChunks = arrayChunk(sourceClasses, 1000);
+  const chunkCount = sourceClasses.length / 10 + 1;
+  const sourceClassChunks = arrayChunk(sourceClasses, chunkCount);
   const sourceClassHandler = async (sourceClass) => {
     await insertSourceClassTable(sourceClass);
   };
   await arraysPromisePool(sourceClassHandler, sourceClassChunks);
 
-  console.log("Init successfully");
+  console.log('Init successfully');
 };
 
 module.exports = {

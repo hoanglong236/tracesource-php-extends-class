@@ -1,10 +1,10 @@
-const { postGreConnection } = require("./postgre-connection");
+const { postGreConnection } = require('./postgre-connection');
 const {
   SOURCE_FILE_TABLE,
   SOURCE_CLASS_TABLE,
   SOURCE_FUNCTION_TABLE,
   INVOKER_FUNCTION_TABLE,
-} = require("./data");
+} = require('./data');
 
 const executeCreateTableQuery = async (sql, tableName) => {
   await postGreConnection
@@ -71,7 +71,7 @@ const executeInsertTableQuery = async (sql, queryParams, tableName) => {
     .query(sql, queryParams)
     .then((res) => {
       console.log(
-        `Insert into ${tableName} with [id: ${parmas[0]}] successfully`
+        `Insert into ${tableName} with [id: ${parmas[0]}] successfully`,
       );
     })
     .catch((err) => {

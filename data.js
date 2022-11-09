@@ -8,15 +8,15 @@ const FILE_EXTENSIONS = {
 
 const ROOT_FILES = [
   {
-    folderPath: "",
-    fileName: "",
+    folderPath: '',
+    fileName: '',
   },
 ];
 
-const SOURCE_FILE_TABLE = "source_file";
-const SOURCE_CLASS_TABLE = "source_class";
-const SOURCE_FUNCTION_TABLE = "source_function";
-const INVOKER_FUNCTION_TABLE = "invoker_function";
+const SOURCE_FILE_TABLE = 'source_file';
+const SOURCE_CLASS_TABLE = 'source_class';
+const SOURCE_FUNCTION_TABLE = 'source_function';
+const INVOKER_FUNCTION_TABLE = 'invoker_function';
 
 module.exports = {
   TRACE_FOLDER_PATHS,

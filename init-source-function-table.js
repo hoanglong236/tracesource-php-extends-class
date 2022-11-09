@@ -1,18 +1,22 @@
-const LineByLine = require("n-readlines");
+const LineByLine = require('n-readlines');
 
 const {
   checkLineStartWithDoubleSlash,
   checkStringIncludeKeywords,
-} = require("./utils");
+  arrayChunk,
+  arraysPromisePool,
+  getRootSourceFiles,
+} = require('./utils');
+const { insertSourceFunctionTable } = require('./dao');
 
-const separateDeclareFunctionLine = (line) => {
-  const functionKeyword = "function ";
+const convertDeclareFunctionLineToSourceFunction = (line) => {
+  const functionKeyword = 'function ';
   const functionKeywordIndex = line.indexOf(functionKeyword);
-  const openRoundBracketsSymbol = "(";
+  const openRoundBracketsSymbol = '(';
   const openRoundBracketsSymbolIndex = line.indexOf(openRoundBracketsSymbol);
-  const closeRoundBracketsSymbol = ")";
+  const closeRoundBracketsSymbol = ')';
   const closeRoundBracketsSymbolIndex = line.lastIndexOf(
-    closeRoundBracketsSymbol
+    closeRoundBracketsSymbol,
   );
 
   const startFunctionNameIndex = functionKeywordIndex + functionKeyword.length;
@@ -24,19 +28,19 @@ const separateDeclareFunctionLine = (line) => {
     .trim();
 
   return {
-    functionSignature: functionSignature,
-    functionName: functionName,
+    signature: functionSignature,
+    name: functionName,
   };
 };
 
-const getFunctionObjectsInFile = async ({ id, fileName, folderPath }) => {
-  const lineReader = new LineByLine(folderPath + "\\" + fileName);
-  const ignoreKeywords = ["private "];
-  const functionKeyword = "function ";
-  const openCurlyBracketsSymbol = "{";
-  const functionObjects = [];
-  let line = "";
-  let declareFunctionLine = "";
+const getSourceFunctionsInFile = async ({ id, folderPath, fileName }) => {
+  const lineReader = new LineByLine(folderPath + '\\' + fileName);
+  const ignoreKeywords = ['private '];
+  const functionKeyword = 'function ';
+  const openCurlyBracketsSymbol = '{';
+  const sourceFunctions = [];
+  let line = '';
+  let declareFunctionLine = '';
   let isDeclareFunctionLineInMultpleRows = false;
 
   while ((line = lineReader.next())) {
@@ -54,50 +58,61 @@ const getFunctionObjectsInFile = async ({ id, fileName, folderPath }) => {
       if (!isDeclareFunctionLineInMultpleRows) {
         continue;
       }
-      declareFunctionLine += " " + line;
+      declareFunctionLine += ' ' + line;
     }
 
     if (declareFunctionLine.includes(openCurlyBracketsSymbol)) {
-      functionObjects.push({
-        ...separateDeclareFunctionLine(declareFunctionLine),
+      const sourceFunction = {
+        ...convertDeclareFunctionLineToSourceFunction(declareFunctionLine),
         fileId: id,
-      });
+      };
+      sourceFunctions.push(sourceFunction);
       isDeclareFunctionLineInMultpleRows = false;
     } else {
       isDeclareFunctionLineInMultpleRows = true;
     }
   }
 
-  return functionObjects;
+  return sourceFunctions;
 };
 
-const getSourceFunctionsFromFiles = () => {
+const getSourceFunctionsByTraceFiles = async (files) => {
   const sourceFunctions = [];
-  sourceFiles.map((sourceFile) => {
-    const functionObjectsInFile = getFunctionObjectsInFile(sourceFile);
-  })
-}
-
-const getRootSourceFiles = async () => {
-  const getRootSourceFilesHandler = ROOT_FILES.map(async (rootFile) => {
-    return await getSourceFileByFolderPathAndFileName(
-      rootFile.folderPath,
-      rootFile.fileName
-    );
+  const fillSourceFunctionsHandler = files.map(async (file) => {
+    const sourceFunctionsInFile = await getSourceFunctionsInFile(file);
+    sourceFunctions.push(...sourceFunctionsInFile);
   });
 
-  return await Promise.all(getRootSourceFilesHandler)
-    .then((values) => {
-      return values;
-    })
-    .catch((err) => {
-      console.log(err);
-      return [];
-    });
-}
+  await Promise.all(fillSourceFunctionsHandler);
 
-const getSourceFunctionsFromRootFiles = async () => {
-  const rootSourcFiles = await getRootSourceFiles();
+  sourceFunctions.forEach((sourceFunction, index) => {
+    sourceFunction.id = index;
+  });
+
+  return sourceFunctions;
 };
 
-// BUGS!!!
+const getSourceFunctionsByTraceRootFiles = async () => {
+  const rootSourceFiles = await getRootSourceFiles();
+  const sourceFunctions = await getSourceFunctionsByTraceFiles(rootSourceFiles);
+  return sourceFunctions;
+};
+
+const initSourceFunctionTable = async () => {
+  const sourceFunctions = await getSourceFunctionsByTraceRootFiles();
+
+  const sourceFunctionChunks = arrayChunk(
+    sourceFunctions,
+    sourceFunctions.length / 10,
+  );
+  const sourceFunctionHandler = async (sourceFunction) => {
+    await insertSourceFunctionTable(sourceFunction);
+  };
+  await arraysPromisePool(sourceFunctionHandler, sourceFunctionChunks);
+
+  console.log('Init source-function-table successfully');
+};
+
+module.exports = {
+  initSourceFunctionTable,
+};
