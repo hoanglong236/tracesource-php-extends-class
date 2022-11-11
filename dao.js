@@ -3,7 +3,7 @@ const {
   SOURCE_FILE_TABLE,
   SOURCE_CLASS_TABLE,
   SOURCE_FUNCTION_TABLE,
-  INVOKER_FUNCTION_TABLE,
+  FUNCTION_INVOKER_TABLE,
 } = require('./data');
 
 const executeCreateTableQuery = async (sql, tableName) => {
@@ -53,9 +53,9 @@ const createSourceFunctionTable = async () => {
   await executeCreateTableQuery(sql, SOURCE_FUNCTION_TABLE);
 };
 
-const createInvokerFunctionTable = async () => {
+const createFunctionInvokerTable = async () => {
   const sql =
-    `CREATE TABLE ${INVOKER_FUNCTION_TABLE} ( ` +
+    `CREATE TABLE ${FUNCTION_INVOKER_TABLE} ( ` +
     `  id INT, ` +
     `  line_number INT, ` +
     `  line_content VARCHAER(500), ` +
@@ -63,7 +63,7 @@ const createInvokerFunctionTable = async () => {
     `  invoked_function_id INT ` +
     `)`;
 
-  await executeCreateTableQuery(sql, INVOKER_FUNCTION_TABLE);
+  await executeCreateTableQuery(sql, FUNCTION_INVOKER_TABLE);
 };
 
 const executeInsertTableQuery = async (sql, queryParams, tableName) => {
@@ -101,17 +101,17 @@ const insertSourceFunctionTable = async ({ id, signature, name, fileId }) => {
   await executeInsertTableQuery(sql, params, SOURCE_FUNCTION_TABLE);
 };
 
-const insertInvokerFunctionTable = async ({
+const insertFunctionInvokerTable = async ({
   id,
   lineNumber,
   lineContent,
   fileId,
   invokedFunctionId,
 }) => {
-  const sql = `INSERT INTO ${INVOKER_FUNCTION_TABLE} VALUES($1, $2, $3, $4, $5)`;
+  const sql = `INSERT INTO ${FUNCTION_INVOKER_TABLE} VALUES($1, $2, $3, $4, $5)`;
   const params = [id, lineNumber, lineContent, fileId, invokedFunctionId];
 
-  await executeInsertTableQuery(sql, params, INVOKER_FUNCTION_TABLE);
+  await executeInsertTableQuery(sql, params, FUNCTION_INVOKER_TABLE);
 };
 
 const deleteAllRecordsInTable = async (tableName) => {
@@ -256,6 +256,34 @@ const getChildSourceClassesByClassId = async (classId) => {
     });
 };
 
+const getChildSourceClassFilesByFileId = async (fileId) => {
+  const getSourceClassIdByFileIdSql = `SELECT id FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1`;
+  const getChildSourceClassesByClassIdSql = `SELECT * FROM ${SOURCE_CLASS_TABLE} WHERE parent_id = (${getSourceClassIdByFileIdSql})`;
+  const sql =
+    `WITH ChildSourceClasses AS ( ` +
+    getChildSourceClassesByClassIdSql +
+    `)` +
+    `SELECT * FROM ${SOURCE_FILE_TABLE} source_file ` +
+    `INNER JOIN ChildSourceClasses child_source_class ON child_source_class.file_id = source_file.id`;
+  const params = [fileId];
+
+  return await postGreConnection
+    .query(sql, params)
+    .then((res) => {
+      return res.rows.map((row) => {
+        return {
+          id: row.id,
+          folderPath: row.folder_path,
+          fileName: row.file_name,
+        };
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return;
+    });
+};
+
 const getSourceFunctionsByFileId = async (fileId) => {
   const sql = `SELECT * FROM ${SOURCE_FUNCTION_TABLE} WHERE file_id = $1`;
   const params = [fileId];
@@ -282,11 +310,11 @@ module.exports = {
   createSourceFileTable,
   createSourceClassTable,
   createSourceFunctionTable,
-  createInvokerFunctionTable,
+  createFunctionInvokerTable,
   insertSourceFileTable,
   insertSourceClassTable,
   insertSourceFunctionTable,
-  insertInvokerFunctionTable,
+  insertFunctionInvokerTable,
   deleteAllRecordsInTable,
   getAllSourceFiles,
   getSourceFileByFileId,
@@ -294,5 +322,6 @@ module.exports = {
   getSourceFileByFilePath,
   getSourceClassesByFileId,
   getChildSourceClassesByClassId,
+  getChildSourceClassFilesByFileId,
   getSourceFunctionsByFileId,
 };

@@ -16,7 +16,7 @@ const ROOT_FILES = [
 const SOURCE_FILE_TABLE = 'source_file';
 const SOURCE_CLASS_TABLE = 'source_class';
 const SOURCE_FUNCTION_TABLE = 'source_function';
-const INVOKER_FUNCTION_TABLE = 'invoker_function';
+const FUNCTION_INVOKER_TABLE = 'function_invoker';
 
 module.exports = {
   TRACE_FOLDER_PATHS,
@@ -26,5 +26,5 @@ module.exports = {
   SOURCE_FILE_TABLE,
   SOURCE_CLASS_TABLE,
   SOURCE_FUNCTION_TABLE,
-  INVOKER_FUNCTION_TABLE,
+  FUNCTION_INVOKER_TABLE,
 };
