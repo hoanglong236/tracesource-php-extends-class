@@ -66,11 +66,11 @@ const getInvokersOfFunctionsInRootFiles = async () => {
   const functionInvokers = [];
 
   const rootSourceFiles = getRootSourceFiles();
-  const rootSourceFileHandler = rootSourceFiles.map(async (rootFile) => {
-    const invokersInFile = await getInvokersOfFunctionsInFile(file);
+  const fillFunctionInvokers = rootSourceFiles.map(async (rootFile) => {
+    const invokersInFile = await getInvokersOfFunctionsInFile(rootFile);
     functionInvokers.push(...invokersInFile);
   });
-  await Promise.all(rootSourceFileHandler);
+  await Promise.all(fillFunctionInvokers);
 
   return functionInvokers;
 };
@@ -87,6 +87,8 @@ const initFunctionInvokerTable = async () => {
     await insertFunctionInvokerTable(functionInvoker);
   };
   await arraysPromisePool(functionInvokerHandler, functionInvokerChunks);
+
+  console.log('Init function-invoker-table successfully');
 };
 
 module.exports = {
