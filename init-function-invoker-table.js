@@ -16,6 +16,7 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
   const lineReader = new LineByLine(file.folderPath + '\\' + file.filename);
   const functionInvokers = [];
   let lineNumber = 0;
+  let line = '';
 
   // because function name in php is case insensitive
   sourceFunctions.forEach((sourceFunction) => {
@@ -24,14 +25,15 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
 
   while ((line = lineReader.next())) {
     lineNumber++;
-    line = line.toString().trim().toLowerCase();
+    line = line.toString().trim();
+    const lineLowerCase = line.toLowerCase();
 
     if (checkLineStartWithDoubleSlash(line)) {
       continue;
     }
 
     for (const sourceFunction of sourceFunctions) {
-      if (line.includes('->' + sourceFunction.name)) {
+      if (lineLowerCase.includes('->' + sourceFunction.name + '(')) {
         functionInvokers.push({
           lineNumber: lineNumber,
           lineContent: line,

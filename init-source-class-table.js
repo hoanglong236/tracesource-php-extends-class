@@ -85,7 +85,8 @@ const getSourceClassesByTraceFiles = async (files) => {
     classObjectsInFile.forEach((classObject) => {
       const classId = classObjects.length;
       classObjects.push(classObject);
-      classNameMap.set(classObject.className, classId);
+      // because class name in php is case insensitive
+      classNameMap.set(classObject.className.toLowerCase(), classId);
     });
   };
   await arraysPromisePool(fileHandler, fileChunks);
@@ -95,7 +96,7 @@ const getSourceClassesByTraceFiles = async (files) => {
       id: classObject.id,
       className: classObject.className,
       fileId: classObject.fileId,
-      parentId: classNameMap.get(classObject.parentClassName),
+      parentId: classNameMap.get(classObject.parentClassName.toLowerCase()),
     };
   });
 
