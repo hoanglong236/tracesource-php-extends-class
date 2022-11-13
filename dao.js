@@ -94,7 +94,12 @@ const insertSourceClassTable = async ({ id, className, fileId, parentId }) => {
   await executeInsertTableQuery(sql, params, CLASS_FILE_TABLE);
 };
 
-const insertSourceFunctionTable = async ({ id, functionSignature, functionName, fileId }) => {
+const insertSourceFunctionTable = async ({
+  id,
+  functionSignature,
+  functionName,
+  fileId,
+}) => {
   const sql = `INSERT INTO ${SOURCE_FUNCTION_TABLE} VALUES($1, $2, $3, $4)`;
   const params = [id, functionSignature, functionName, fileId];
 
