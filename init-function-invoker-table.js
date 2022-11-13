@@ -20,7 +20,7 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
 
   // because function name in php is case insensitive
   sourceFunctions.forEach((sourceFunction) => {
-    sourceFunction.name = sourceFunction.name.toLowerCase();
+    sourceFunction.functionName = sourceFunction.functionName.toLowerCase();
   });
 
   while ((line = lineReader.next())) {
@@ -33,7 +33,7 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
     }
 
     for (const sourceFunction of sourceFunctions) {
-      if (lineLowerCase.includes('->' + sourceFunction.name + '(')) {
+      if (lineLowerCase.includes('->' + sourceFunction.functionName + '(')) {
         functionInvokers.push({
           lineNumber: lineNumber,
           lineContent: line,

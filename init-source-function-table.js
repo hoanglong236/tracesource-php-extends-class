@@ -28,8 +28,8 @@ const convertDeclareFunctionLineToSourceFunction = (line) => {
     .trim();
 
   return {
-    signature: functionSignature,
-    name: functionName,
+    functionSignature: functionSignature,
+    functionName: functionName,
   };
 };
 

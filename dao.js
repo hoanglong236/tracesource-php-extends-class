@@ -45,8 +45,8 @@ const createSourceFunctionTable = async () => {
   const sql =
     `CREAT TABLE ${SOURCE_FUNCTION_TABLE} ( ` +
     `  id INT, ` +
-    `  signature VARCHAR(500), ` +
-    `  name VARCHAR(150), ` +
+    `  function_signature VARCHAR(500), ` +
+    `  function_name VARCHAR(150), ` +
     `  file_id INT` +
     `)`;
 
@@ -94,9 +94,9 @@ const insertSourceClassTable = async ({ id, className, fileId, parentId }) => {
   await executeInsertTableQuery(sql, params, CLASS_FILE_TABLE);
 };
 
-const insertSourceFunctionTable = async ({ id, signature, name, fileId }) => {
+const insertSourceFunctionTable = async ({ id, functionSignature, functionName, fileId }) => {
   const sql = `INSERT INTO ${SOURCE_FUNCTION_TABLE} VALUES($1, $2, $3, $4)`;
-  const params = [id, signature, name, fileId];
+  const params = [id, functionSignature, functionName, fileId];
 
   await executeInsertTableQuery(sql, params, SOURCE_FUNCTION_TABLE);
 };
@@ -294,8 +294,8 @@ const getSourceFunctionsByFileId = async (fileId) => {
       return res.rows.map((row) => {
         return {
           id: row.id,
-          signature: row.signature,
-          name: row.name,
+          functionSignature: row.function_signature,
+          functionName: row.function_name,
           fileId: row.file_id,
         };
       });
