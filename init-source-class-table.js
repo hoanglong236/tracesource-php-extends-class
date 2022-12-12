@@ -42,7 +42,7 @@ const getClassObjectsInFile = async ({ id, folderPath, fileName }) => {
   const classObjects = [];
   let line = '';
   let declareClassLine = '';
-  let isDeclareClassLineInMultpleRows = false;
+  let isDeclareClassLineInMultipleRows = false;
 
   while ((line = lineReader.next())) {
     line = line.toString().trim();
@@ -53,7 +53,7 @@ const getClassObjectsInFile = async ({ id, folderPath, fileName }) => {
     if (line.includes(classKeyword)) {
       declareClassLine = line;
     } else {
-      if (!isDeclareClassLineInMultpleRows) {
+      if (!isDeclareClassLineInMultipleRows) {
         continue;
       }
       declareClassLine += ' ' + line;
@@ -65,9 +65,9 @@ const getClassObjectsInFile = async ({ id, folderPath, fileName }) => {
         fileId: id,
       };
       classObjects.push(classObject);
-      isDeclareClassLineInMultpleRows = false;
+      isDeclareClassLineInMultipleRows = false;
     } else {
-      isDeclareClassLineInMultpleRows = true;
+      isDeclareClassLineInMultipleRows = true;
     }
   }
 
@@ -82,22 +82,33 @@ const getSourceClassesByTraceFiles = async (files) => {
 
   const fileHandler = async (sourceFile) => {
     const classObjectsInFile = await getClassObjectsInFile(sourceFile);
+
+    if (classObjectsInFile.length === 0) {
+      console.log(`Not found any class in ${sourceFile}`);
+    }
+
     classObjectsInFile.forEach((classObject) => {
-      const classId = classObjects.length;
+      classObject.id = classObjects.length;
       classObjects.push(classObject);
       // because class name in php is case insensitive
-      classNameMap.set(classObject.className.toLowerCase(), classId);
+      classNameMap.set(classObject.className.toLowerCase(), classObject.id);
     });
   };
   await arraysPromisePool(fileHandler, fileChunks);
 
   const sourceClasses = classObjects.map((classObject) => {
-    return {
+    const sourceClass = {
       id: classObject.id,
       className: classObject.className,
       fileId: classObject.fileId,
-      parentId: classNameMap.get(classObject.parentClassName.toLowerCase()),
     };
+
+    if (classObject.parentClassName) {
+      sourceClass.id = classNameMap.get(
+        classObject.parentClassName.toLowerCase(),
+      );
+    }
+    return sourceClass;
   });
 
   return sourceClasses;

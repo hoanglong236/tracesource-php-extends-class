@@ -1,6 +1,3 @@
-const { getSourceFileByFolderPathAndFileName } = require('./dao');
-const { ROOT_FILES } = require('./data');
-
 const arrayChunk = (arr, chunkCount) => {
   const chunks = [];
 
@@ -22,7 +19,7 @@ const arraysPromisePool = async (handler, arrays) => {
 };
 
 const checkLineStartWithDoubleSlash = (line) => {
-  if (line.startWiths('////')) {
+  if (line.startsWith('////')) {
     return true;
   }
   return false;
@@ -37,30 +34,9 @@ const checkStringIncludeKeywords = (str, keywords) => {
   return false;
 };
 
-const getRootSourceFiles = async () => {
-  const chunkCount = ROOT_FILES.length / 10 + 1;
-  const rootFileChunks = arrayChunk(ROOT_FILES, chunkCount);
-  const getRootSourceFileHandler = async (rootFile) => {
-    return await getSourceFileByFolderPathAndFileName(
-      rootFile.folderPath,
-      rootFile.fileName,
-    );
-  };
-
-  return await arraysPromisePool(getRootSourceFileHandler, rootFileChunks)
-    .then((values) => {
-      return values;
-    })
-    .catch((err) => {
-      console.log(err);
-      return [];
-    });
-};
-
 module.exports = {
   arrayChunk,
   arraysPromisePool,
   checkLineStartWithDoubleSlash,
-  checkStringIncludeKeywords,
-  getRootSourceFiles,
+  checkStringIncludeKeywords
 };

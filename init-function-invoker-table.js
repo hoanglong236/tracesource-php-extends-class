@@ -4,9 +4,9 @@ const {
   getSourceFunctionsByFileId,
   getChildSourceClassFilesByFileId,
   insertFunctionInvokerTable,
+  getRootSourceFiles,
 } = require('./dao');
 const {
-  getRootSourceFiles,
   checkLineStartWithDoubleSlash,
   arrayChunk,
   arraysPromisePool,
@@ -33,7 +33,10 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
     }
 
     for (const sourceFunction of sourceFunctions) {
-      if (lineLowerCase.includes('->' + sourceFunction.functionName + '(')) {
+      if (
+        lineLowerCase.includes('->' + sourceFunction.functionName) ||
+        lineLowerCase.includes('self::' + sourceFunction.functionName)
+      ) {
         functionInvokers.push({
           lineNumber: lineNumber,
           lineContent: line,
@@ -72,8 +75,8 @@ const getInvokersOfFunctionsInRootFiles = async () => {
     const invokersInFile = await getInvokersOfFunctionsInFile(rootFile);
     functionInvokers.push(...invokersInFile);
   });
-  await Promise.all(fillFunctionInvokers);
 
+  await Promise.all(fillFunctionInvokers);
   return functionInvokers;
 };
 

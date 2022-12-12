@@ -5,9 +5,8 @@ const {
   checkStringIncludeKeywords,
   arrayChunk,
   arraysPromisePool,
-  getRootSourceFiles,
 } = require('./utils');
-const { insertSourceFunctionTable } = require('./dao');
+const { insertSourceFunctionTable, getRootSourceFiles } = require('./dao');
 
 const convertDeclareFunctionLineToSourceFunction = (line) => {
   const functionKeyword = 'function ';
@@ -21,7 +20,7 @@ const convertDeclareFunctionLineToSourceFunction = (line) => {
 
   const startFunctionNameIndex = functionKeywordIndex + functionKeyword.length;
   const functionSignature = line
-    .substring(startFunctionNameIndex, closeRoundBracketsSymbolIndex)
+    .substring(startFunctionNameIndex, closeRoundBracketsSymbolIndex + 1)
     .toString();
   const functionName = line
     .substring(startFunctionNameIndex, openRoundBracketsSymbolIndex)
@@ -41,7 +40,7 @@ const getSourceFunctionsInFile = async ({ id, folderPath, fileName }) => {
   const sourceFunctions = [];
   let line = '';
   let declareFunctionLine = '';
-  let isDeclareFunctionLineInMultpleRows = false;
+  let isDeclareFunctionLineInMultipleRows = false;
 
   while ((line = lineReader.next())) {
     line = line.toString().trim();
@@ -55,7 +54,7 @@ const getSourceFunctionsInFile = async ({ id, folderPath, fileName }) => {
       }
       declareFunctionLine = line;
     } else {
-      if (!isDeclareFunctionLineInMultpleRows) {
+      if (!isDeclareFunctionLineInMultipleRows) {
         continue;
       }
       declareFunctionLine += ' ' + line;
@@ -67,9 +66,9 @@ const getSourceFunctionsInFile = async ({ id, folderPath, fileName }) => {
         fileId: id,
       };
       sourceFunctions.push(sourceFunction);
-      isDeclareFunctionLineInMultpleRows = false;
+      isDeclareFunctionLineInMultipleRows = false;
     } else {
-      isDeclareFunctionLineInMultpleRows = true;
+      isDeclareFunctionLineInMultipleRows = true;
     }
   }
 

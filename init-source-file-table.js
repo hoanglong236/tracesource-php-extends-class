@@ -23,7 +23,7 @@ const checkFileExtension = (fileName) => {
   }
 
   const fileExtension = fileName.substring(lastDotSymbolIndex + 1);
-  if (FILE_EXTENSIONS(fileExtension)) {
+  if (FILE_EXTENSIONS[fileExtension]) {
     return true;
   }
 
@@ -31,9 +31,9 @@ const checkFileExtension = (fileName) => {
 };
 
 const convertFilePathToFile = (filePath) => {
-  const lastBackSlashIndex = fileName.lastIndexOf('\\');
-  const folderPath = fileName.substring(0, lastBackSlashIndex);
-  const fileName = fileName.substring(lastBackSlashIndex + 1);
+  const lastBackSlashIndex = filePath.lastIndexOf('\\');
+  const folderPath = filePath.substring(0, lastBackSlashIndex);
+  const fileName = filePath.substring(lastBackSlashIndex + 1);
 
   return {
     folderPath: folderPath,
@@ -44,7 +44,7 @@ const convertFilePathToFile = (filePath) => {
 const tracedFiles = [];
 
 const traceFileDPS = (filePath) => {
-  const fileStats = fs.fstatSync(filePath);
+  const fileStats = fs.statSync(filePath);
   if (fileStats.isDirectory()) {
     if (!isIgnoreFolder(filePath)) {
       const childFiles = fs.readdirSync(filePath);

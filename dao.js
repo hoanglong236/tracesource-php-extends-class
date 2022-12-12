@@ -4,6 +4,7 @@ const {
   SOURCE_CLASS_TABLE,
   SOURCE_FUNCTION_TABLE,
   FUNCTION_INVOKER_TABLE,
+  ROOT_FILES,
 } = require('./data');
 
 const executeCreateTableQuery = async (sql, tableName) => {
@@ -23,7 +24,7 @@ const createSourceFileTable = async () => {
     `CREATE TABLE ${SOURCE_FILE_TABLE} ( ` +
     `  id INT, ` +
     `  folder_path VARCHAR(500), ` +
-    `  file_name VARCHAR(150), ` +
+    `  file_name VARCHAR(150) ` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_FILE_TABLE);
@@ -33,9 +34,9 @@ const createSourceClassTable = async () => {
   const sql =
     `CREATE TABLE ${SOURCE_CLASS_TABLE} ( ` +
     `  id INT, ` +
-    `  class_name VARCHAR(150)` +
+    `  class_name VARCHAR(150), ` +
     `  file_id INT, ` +
-    `  parent_id INT, ` +
+    `  parent_id INT ` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_CLASS_TABLE);
@@ -43,11 +44,11 @@ const createSourceClassTable = async () => {
 
 const createSourceFunctionTable = async () => {
   const sql =
-    `CREAT TABLE ${SOURCE_FUNCTION_TABLE} ( ` +
+    `CREATE TABLE ${SOURCE_FUNCTION_TABLE} ( ` +
     `  id INT, ` +
     `  function_signature VARCHAR(500), ` +
     `  function_name VARCHAR(150), ` +
-    `  file_id INT` +
+    `  file_id INT ` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_FUNCTION_TABLE);
@@ -58,7 +59,7 @@ const createFunctionInvokerTable = async () => {
     `CREATE TABLE ${FUNCTION_INVOKER_TABLE} ( ` +
     `  id INT, ` +
     `  line_number INT, ` +
-    `  line_content VARCHAER(500), ` +
+    `  line_content VARCHAR(500), ` +
     `  file_id INT, ` +
     `  invoked_function_id INT ` +
     `)`;
@@ -71,11 +72,12 @@ const executeInsertTableQuery = async (sql, queryParams, tableName) => {
     .query(sql, queryParams)
     .then((res) => {
       console.log(
-        `Insert into ${tableName} with [id: ${parmas[0]}] successfully`,
+        `Insert into ${tableName} with [id: ${queryParams[0]}] successfully`,
       );
     })
     .catch((err) => {
-      console.log(`Insert into ${tableName} with [id: ${parmas[0]}] failed!!!`);
+      console.log(`Insert into ${tableName} failed!!!`);
+      console.log(`Query params: ${queryParams}`);
       console.log(err);
     });
 };
@@ -88,10 +90,10 @@ const insertSourceFileTable = async ({ id, folderPath, fileName }) => {
 };
 
 const insertSourceClassTable = async ({ id, className, fileId, parentId }) => {
-  const sql = `INSERT INTO ${CLASS_FILE_TABLE} VALUES($1, $2, $3, $4)`;
+  const sql = `INSERT INTO ${SOURCE_CLASS_TABLE} VALUES($1, $2, $3, $4)`;
   const params = [id, className, fileId, parentId];
 
-  await executeInsertTableQuery(sql, params, CLASS_FILE_TABLE);
+  await executeInsertTableQuery(sql, params, SOURCE_CLASS_TABLE);
 };
 
 const insertSourceFunctionTable = async ({
@@ -217,6 +219,21 @@ const getSourceFileByFilePath = async (filePath) => {
     });
 };
 
+const getRootSourceFiles = async () => {
+  const getRootSourceFilesHandler = ROOT_FILES.map(async (rootFile) => {
+    return await getSourceFileByFolderPathAndFileName(rootFile);
+  });
+
+  return await Promise.all(getRootSourceFilesHandler)
+    .then((values) => {
+      return values;
+    })
+    .catch((err) => {
+      console.log(err);
+      return [];
+    });
+};
+
 const getSourceClassesByFileId = async (fileId) => {
   const sql = `SELECT * FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1`;
   const params = [fileId];
@@ -325,6 +342,7 @@ module.exports = {
   getSourceFileByFileId,
   getSourceFileByFolderPathAndFileName,
   getSourceFileByFilePath,
+  getRootSourceFiles,
   getSourceClassesByFileId,
   getChildSourceClassesByClassId,
   getChildSourceClassFilesByFileId,
