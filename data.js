@@ -13,10 +13,12 @@ const ROOT_FILES = [
   },
 ];
 
-const SOURCE_FILE_TABLE = 'source_file';
-const SOURCE_CLASS_TABLE = 'source_class';
-const SOURCE_FUNCTION_TABLE = 'source_function';
-const FUNCTION_INVOKER_TABLE = 'function_invoker';
+const prefix_table = 'php_';
+
+const SOURCE_FILE_TABLE = prefix_table + 'source_file';
+const SOURCE_CLASS_TABLE = prefix_table + 'source_class';
+const SOURCE_FUNCTION_TABLE = prefix_table + 'source_function';
+const FUNCTION_INVOKER_TABLE = prefix_table + 'function_invoker';
 
 module.exports = {
   TRACE_FOLDER_PATHS,

@@ -12,6 +12,8 @@ const convertDeclareClassLineToClassObject = (line) => {
   const classKeywordIndex = line.indexOf(classKeyword);
   const extendsKeyword = 'extends ';
   const extendsKeywordIndex = line.indexOf(extendsKeyword);
+  const implementsKeyword = ' implements ';
+  const implementsKeywordIndex = line.indexOf(implementsKeyword);
   const openCurlyBracketsSymbol = '{';
   const openCurlyBracketsSymbolIndex = line.lastIndexOf(
     openCurlyBracketsSymbol,
@@ -27,12 +29,19 @@ const convertDeclareClassLineToClassObject = (line) => {
   }
 
   const parentClassNameStartIndex = extendsKeywordIndex + extendsKeyword.length;
-  return {
+  const parentClassNameEndIndex =
+    implementsKeywordIndex === -1
+      ? openCurlyBracketsSymbolIndex
+      : implementsKeywordIndex;
+
+  const classObject = {
     className: line.substring(classNameStartIndex, extendsKeywordIndex).trim(),
     parentClassName: line
-      .substring(parentClassNameStartIndex, openCurlyBracketsSymbolIndex)
+      .substring(parentClassNameStartIndex, parentClassNameEndIndex)
       .trim(),
   };
+
+  return classObject;
 };
 
 const getClassObjectsInFile = async ({ id, folderPath, fileName }) => {
@@ -84,7 +93,7 @@ const getSourceClassesByTraceFiles = async (files) => {
     const classObjectsInFile = await getClassObjectsInFile(sourceFile);
 
     if (classObjectsInFile.length === 0) {
-      console.log(`Not found any class in ${sourceFile}`);
+      console.log('Not found any class in ', sourceFile);
     }
 
     classObjectsInFile.forEach((classObject) => {
@@ -104,7 +113,7 @@ const getSourceClassesByTraceFiles = async (files) => {
     };
 
     if (classObject.parentClassName) {
-      sourceClass.id = classNameMap.get(
+      sourceClass.parentId = classNameMap.get(
         classObject.parentClassName.toLowerCase(),
       );
     }

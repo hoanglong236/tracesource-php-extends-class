@@ -279,14 +279,14 @@ const getChildSourceClassesByClassId = async (classId) => {
 };
 
 const getChildSourceClassFilesByFileId = async (fileId) => {
-  const getSourceClassIdByFileIdSql = `SELECT id FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1`;
-  const getChildSourceClassesByClassIdSql = `SELECT * FROM ${SOURCE_CLASS_TABLE} WHERE parent_id = (${getSourceClassIdByFileIdSql})`;
+  const getSourceClassIdSql = `SELECT id FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1`;
+  const getChildSourceClassFileIdSql = `SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE} WHERE parent_id IN (${getSourceClassIdSql})`;
   const sql =
-    `WITH ChildSourceClasses AS ( ` +
-    getChildSourceClassesByClassIdSql +
+    `WITH child_class_file_id AS ( ` +
+    getChildSourceClassFileIdSql +
     `)` +
-    `SELECT * FROM ${SOURCE_FILE_TABLE} source_file ` +
-    `INNER JOIN ChildSourceClasses child_source_class ON child_source_class.file_id = source_file.id`;
+    `SELECT source_file.* FROM ${SOURCE_FILE_TABLE} source_file ` +
+    `INNER JOIN child_class_file_id ON child_class_file_id.file_id = source_file.id`;
   const params = [fileId];
 
   return await postGreConnection

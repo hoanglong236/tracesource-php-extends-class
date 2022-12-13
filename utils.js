@@ -19,7 +19,7 @@ const arraysPromisePool = async (handler, arrays) => {
 };
 
 const checkLineStartWithDoubleSlash = (line) => {
-  if (line.startsWith('////')) {
+  if (line.startsWith('//')) {
     return true;
   }
   return false;
@@ -38,5 +38,5 @@ module.exports = {
   arrayChunk,
   arraysPromisePool,
   checkLineStartWithDoubleSlash,
-  checkStringIncludeKeywords
+  checkStringIncludeKeywords,
 };

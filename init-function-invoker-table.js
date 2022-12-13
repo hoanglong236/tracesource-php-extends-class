@@ -13,7 +13,7 @@ const {
 } = require('./utils');
 
 const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
-  const lineReader = new LineByLine(file.folderPath + '\\' + file.filename);
+  const lineReader = new LineByLine(file.folderPath + '\\' + file.fileName);
   const functionInvokers = [];
   let lineNumber = 0;
   let line = '';
@@ -55,7 +55,7 @@ const getInvokersOfFunctionsInFile = async (file) => {
   const childSourceClassFiles = await getChildSourceClassFilesByFileId(file.id);
 
   const functionInvokers = [];
-  const fillFuncionInvokers = childSourceClassFiles.map(async (childFile) => {
+  const fillFunctionInvokers = childSourceClassFiles.map(async (childFile) => {
     const functionInvokersInFile = await getInvokersInFileOfFunctions(
       childFile,
       sourceFunctions,
@@ -63,14 +63,14 @@ const getInvokersOfFunctionsInFile = async (file) => {
     functionInvokers.push(...functionInvokersInFile);
   });
 
-  await Promise.all(fillFuncionInvokers);
+  await Promise.all(fillFunctionInvokers);
   return functionInvokers;
 };
 
 const getInvokersOfFunctionsInRootFiles = async () => {
   const functionInvokers = [];
 
-  const rootSourceFiles = getRootSourceFiles();
+  const rootSourceFiles = await getRootSourceFiles();
   const fillFunctionInvokers = rootSourceFiles.map(async (rootFile) => {
     const invokersInFile = await getInvokersOfFunctionsInFile(rootFile);
     functionInvokers.push(...invokersInFile);
