@@ -278,7 +278,7 @@ const getChildSourceClassesByClassId = async (classId) => {
     });
 };
 
-const getChildSourceClassFilesByFileId = async (fileId) => {
+const getFilesOfChildClassByParentClassFileId = async (fileId) => {
   const childSourceClassWithClause =
     `child_class_file AS (\n` +
     `  SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE}\n` +
@@ -311,7 +311,7 @@ const getChildSourceClassFilesByFileId = async (fileId) => {
     });
 };
 
-const getRecursiveChildSourceClassFilesByFileId = async (fileId) => {
+const getFilesOfRecursiveChildClassByParentClassFileId = async (fileId) => {
   const treeSourceClassWithClause =
     `RECURSIVE tree_source_class(id, tree_path) AS (\n` +
     `  SELECT source_class.id, source_class.id::TEXT || '->' AS tree_path\n` +
@@ -398,7 +398,7 @@ module.exports = {
   getRootSourceFiles,
   getSourceClassesByFileId,
   getChildSourceClassesByClassId,
-  getChildSourceClassFilesByFileId,
-  getRecursiveChildSourceClassFilesByFileId,
+  getFilesOfChildClassByParentClassFileId,
+  getFilesOfRecursiveChildClassByParentClassFileId,
   getSourceFunctionsByFileId,
 };

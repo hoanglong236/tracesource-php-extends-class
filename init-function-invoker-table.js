@@ -2,8 +2,8 @@ const LineByLine = require('n-readlines');
 
 const {
   getSourceFunctionsByFileId,
-  getChildSourceClassFilesByFileId,
-  getRecursiveChildSourceClassFilesByFileId,
+  getFilesOfChildClassByParentClassFileId,
+  getFilesOfRecursiveChildClassByParentClassFileId,
   insertFunctionInvokerTable,
   getRootSourceFiles,
 } = require('./dao');
@@ -53,8 +53,8 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
 
 const getInvokersOfFunctionsInFile = async (file) => {
   const sourceFunctions = await getSourceFunctionsByFileId(file.id);
-  const childSourceClassFiles = await getChildSourceClassFilesByFileId(file.id);
-  // const childSourceClassFiles = await getRecursiveChildSourceClassFilesByFileId(file.id);
+  const childSourceClassFiles = await getFilesOfChildClassByParentClassFileId(file.id);
+  // const childSourceClassFiles = await getFilesOfRecursiveChildClassByParentClassFileId(file.id);
 
   const functionInvokers = [];
   const fillFunctionInvokers = childSourceClassFiles.map(async (childFile) => {
