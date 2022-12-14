@@ -256,29 +256,7 @@ const getSourceClassesByFileId = async (fileId) => {
     });
 };
 
-const getChildSourceClassesByClassId = async (classId) => {
-  const sql = `SELECT * FROM ${SOURCE_CLASS_TABLE} WHERE parent_id = $1`;
-  const params = [classId];
-
-  return await postGreConnection
-    .query(sql, params)
-    .then((res) => {
-      return res.rows.map((row) => {
-        return {
-          id: row.id,
-          className: row.class_name,
-          fileId: row.file_id,
-          parentId: row.parent_id,
-        };
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      return;
-    });
-};
-
-const getFilesOfChildClassByParentClassFileId = async (fileId) => {
+const getClassSourceFilesByParentClassFileId = async (fileId) => {
   const childSourceClassWithClause =
     `child_class_file AS (\n` +
     `  SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE}\n` +
@@ -311,7 +289,7 @@ const getFilesOfChildClassByParentClassFileId = async (fileId) => {
     });
 };
 
-const getFilesOfRecursiveChildClassByParentClassFileId = async (fileId) => {
+const getRecursiveClassSourceFilesByParentClassFileId = async (fileId) => {
   const treeSourceClassWithClause =
     `RECURSIVE tree_source_class(id, tree_path) AS (\n` +
     `  SELECT source_class.id, source_class.id::TEXT || '->' AS tree_path\n` +
@@ -397,8 +375,7 @@ module.exports = {
   getSourceFileByFilePath,
   getRootSourceFiles,
   getSourceClassesByFileId,
-  getChildSourceClassesByClassId,
-  getFilesOfChildClassByParentClassFileId,
-  getFilesOfRecursiveChildClassByParentClassFileId,
+  getClassSourceFilesByParentClassFileId,
+  getRecursiveClassSourceFilesByParentClassFileId,
   getSourceFunctionsByFileId,
 };
