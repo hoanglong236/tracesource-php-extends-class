@@ -279,14 +279,67 @@ const getChildSourceClassesByClassId = async (classId) => {
 };
 
 const getChildSourceClassFilesByFileId = async (fileId) => {
-  const getSourceClassIdSql = `SELECT id FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1`;
-  const getChildSourceClassFileIdSql = `SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE} WHERE parent_id IN (${getSourceClassIdSql})`;
+  const childSourceClassWithClause =
+    `child_class_file AS (\n` +
+    `  SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE}\n` +
+    `  WHERE parent_id IN (\n` +
+    `    SELECT id FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1\n` +
+    `  )\n` +
+    `)`;
+
+  const withClause = `WITH ${childSourceClassWithClause}\n`;
   const sql =
-    `WITH child_class_file_id AS ( ` +
-    getChildSourceClassFileIdSql +
-    `)` +
-    `SELECT source_file.* FROM ${SOURCE_FILE_TABLE} source_file ` +
-    `INNER JOIN child_class_file_id ON child_class_file_id.file_id = source_file.id`;
+    withClause +
+    `SELECT source_file.* FROM ${SOURCE_FILE_TABLE} source_file\n` +
+    `INNER JOIN child_class_file ON child_class_file.file_id = source_file.id`;
+  const params = [fileId];
+
+  return await postGreConnection
+    .query(sql, params)
+    .then((res) => {
+      return res.rows.map((row) => {
+        return {
+          id: row.id,
+          folderPath: row.folder_path,
+          fileName: row.file_name,
+        };
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      return;
+    });
+};
+
+const getRecursiveChildSourceClassFilesByFileId = async (fileId) => {
+  const treeSourceClassWithClause =
+    `RECURSIVE tree_source_class(id, tree_path) AS (\n` +
+    `  SELECT source_class.id, source_class.id::TEXT || '->' AS tree_path\n` +
+    `  FROM ${SOURCE_CLASS_TABLE} source_class\n` +
+    `  WHERE source_class.parent_id IS NULL\n` +
+    `  UNION ALL\n` +
+    `  SELECT source_class.id, source_class.id::TEXT || '->' || tree_source_class.tree_path AS tree_path\n` +
+    `  FROM tree_source_class\n` +
+    `  INNER JOIN ${SOURCE_CLASS_TABLE} source_class ON source_class.parent_id = tree_source_class.id\n` +
+    `)`;
+
+  const childSourceClassWithClause =
+    `child_source_class AS (\n` +
+    `  SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE}\n` +
+    `  WHERE id IN (\n` +
+    `    SELECT id FROM tree_source_class\n` +
+    `    WHERE tree_path LIKE (\n` +
+    `      SELECT '%->' || id::TEXT FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1\n` +
+    `    )\n` +
+    `  )\n` +
+    `)`;
+
+  const withClause = `WITH ${treeSourceClassWithClause}, ${childSourceClassWithClause}\n`;
+  const sql =
+    withClause +
+    `SELECT source_file.* FROM ${SOURCE_FILE_TABLE} source_file\n` +
+    `INNER JOIN child_source_class ON child_source_class.file_id = source_file.id`;
+
   const params = [fileId];
 
   return await postGreConnection
@@ -346,5 +399,6 @@ module.exports = {
   getSourceClassesByFileId,
   getChildSourceClassesByClassId,
   getChildSourceClassFilesByFileId,
+  getRecursiveChildSourceClassFilesByFileId,
   getSourceFunctionsByFileId,
 };
