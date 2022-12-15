@@ -54,7 +54,7 @@ const getInvokersInFileOfFunctions = async (file, sourceFunctions) => {
 const getInvokersOfFunctionsInFile = async (file) => {
   const sourceFunctions = await getSourceFunctionsByFileId(file.id);
   const childClassSourceFiles = await getClassSourceFilesByParentClassFileId(file.id);
-  // const childSourceClassFiles = await getRecursiveClassSourceFilesByParentClassFileId(file.id);
+  // const childClassSourceFiles = await getRecursiveClassSourceFilesByParentClassFileId(file.id);
 
   const functionInvokers = [];
   const fillFunctionInvokers = childClassSourceFiles.map(async (childFile) => {

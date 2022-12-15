@@ -21,10 +21,10 @@ const executeCreateTableQuery = async (sql, tableName) => {
 
 const createSourceFileTable = async () => {
   const sql =
-    `CREATE TABLE ${SOURCE_FILE_TABLE} ( ` +
-    `  id INT, ` +
-    `  folder_path VARCHAR(500), ` +
-    `  file_name VARCHAR(150) ` +
+    `CREATE TABLE ${SOURCE_FILE_TABLE} (\n` +
+    `  id INT,\n` +
+    `  folder_path VARCHAR(500),\n` +
+    `  file_name VARCHAR(150)\n` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_FILE_TABLE);
@@ -32,11 +32,11 @@ const createSourceFileTable = async () => {
 
 const createSourceClassTable = async () => {
   const sql =
-    `CREATE TABLE ${SOURCE_CLASS_TABLE} ( ` +
-    `  id INT, ` +
-    `  class_name VARCHAR(150), ` +
-    `  file_id INT, ` +
-    `  parent_id INT ` +
+    `CREATE TABLE ${SOURCE_CLASS_TABLE} (\n` +
+    `  id INT,\n` +
+    `  class_name VARCHAR(150),\n` +
+    `  file_id INT,\n` +
+    `  parent_id INT\n` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_CLASS_TABLE);
@@ -44,11 +44,11 @@ const createSourceClassTable = async () => {
 
 const createSourceFunctionTable = async () => {
   const sql =
-    `CREATE TABLE ${SOURCE_FUNCTION_TABLE} ( ` +
-    `  id INT, ` +
-    `  function_signature VARCHAR(500), ` +
-    `  function_name VARCHAR(150), ` +
-    `  file_id INT ` +
+    `CREATE TABLE ${SOURCE_FUNCTION_TABLE} (\n` +
+    `  id INT,\n` +
+    `  function_signature VARCHAR(500),\n` +
+    `  function_name VARCHAR(150),\n` +
+    `  file_id INT\n` +
     `)`;
 
   await executeCreateTableQuery(sql, SOURCE_FUNCTION_TABLE);
@@ -56,12 +56,12 @@ const createSourceFunctionTable = async () => {
 
 const createFunctionInvokerTable = async () => {
   const sql =
-    `CREATE TABLE ${FUNCTION_INVOKER_TABLE} ( ` +
-    `  id INT, ` +
-    `  line_number INT, ` +
-    `  line_content VARCHAR(500), ` +
-    `  file_id INT, ` +
-    `  invoked_function_id INT ` +
+    `CREATE TABLE ${FUNCTION_INVOKER_TABLE} (\n` +
+    `  id INT,\n` +
+    `  line_number INT,\n` +
+    `  line_content VARCHAR(500),\n` +
+    `  file_id INT,\n` +
+    `  invoked_function_id INT\n` +
     `)`;
 
   await executeCreateTableQuery(sql, FUNCTION_INVOKER_TABLE);
@@ -179,7 +179,7 @@ const getSourceFileByFolderPathAndFileName = async ({
   fileName,
 }) => {
   const sql =
-    `SELECT * FROM ${SOURCE_FILE_TABLE} ` +
+    `SELECT * FROM ${SOURCE_FILE_TABLE}\n` +
     `WHERE folder_path = $1 AND file_name = $2`;
   const params = [folderPath, fileName];
 
@@ -200,7 +200,7 @@ const getSourceFileByFolderPathAndFileName = async ({
 
 const getSourceFileByFilePath = async (filePath) => {
   const sql =
-    `SELECT * FROM ${SOURCE_FILE_TABLE} ` +
+    `SELECT * FROM ${SOURCE_FILE_TABLE}\n` +
     `WHERE (folder_path || '\\\\' || file_name) = $1`;
   const params = [filePath];
 
@@ -292,7 +292,7 @@ const getClassSourceFilesByParentClassFileId = async (fileId) => {
 const getRecursiveClassSourceFilesByParentClassFileId = async (fileId) => {
   const treeSourceClassWithClause =
     `RECURSIVE tree_source_class(id, tree_path) AS (\n` +
-    `  SELECT source_class.id, source_class.id::TEXT || '->' AS tree_path\n` +
+    `  SELECT source_class.id, source_class.id::TEXT AS tree_path\n` +
     `  FROM ${SOURCE_CLASS_TABLE} source_class\n` +
     `  WHERE source_class.parent_id IS NULL\n` +
     `  UNION ALL\n` +
@@ -306,8 +306,8 @@ const getRecursiveClassSourceFilesByParentClassFileId = async (fileId) => {
     `  SELECT DISTINCT file_id FROM ${SOURCE_CLASS_TABLE}\n` +
     `  WHERE id IN (\n` +
     `    SELECT id FROM tree_source_class\n` +
-    `    WHERE tree_path LIKE (\n` +
-    `      SELECT '%->' || id::TEXT FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1\n` +
+    `    WHERE tree_path || '->' LIKE (\n` +
+    `      SELECT '%->' || id::TEXT || '->%' FROM ${SOURCE_CLASS_TABLE} WHERE file_id = $1\n` +
     `    )\n` +
     `  )\n` +
     `)`;
