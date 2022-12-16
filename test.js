@@ -74,16 +74,6 @@ const getSourceFileByFolderPathAndFileName = async () => {
 
 // getSourceFileByFolderPathAndFileName();
 
-const getSourceFileByFilePath = async () => {
-  const sql =
-    `SELECT * FROM ${SOURCE_FILE_TABLE}\n` +
-    `WHERE (folder_path || '\\\\' || file_name) = $1`;
-
-  console.log(sql);
-};
-
-// getSourceFileByFilePath();
-
 const getClassSourceFilesByParentClassFileId = async () => {
   const childSourceClassWithClause =
     `child_class_file AS (\n` +

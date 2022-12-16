@@ -135,19 +135,33 @@ const deleteAllRecordsInTable = async (tableName) => {
     });
 };
 
+const getSourceFilesFromQueryResult = (queryResult) => {
+  return queryResult.rows.map((row) => {
+    return {
+      id: row.id,
+      folderPath: row.folder_path,
+      fileName: row.file_name,
+    };
+  });
+};
+
+const getSourceFileFromQueryResult = (queryResult) => {
+  const firstRecord = queryResult.rows[0];
+
+  return {
+    id: firstRecord.id,
+    folderPath: firstRecord.folder_path,
+    fileName: firstRecord.file_name,
+  };
+};
+
 const getAllSourceFiles = async () => {
   const sql = `SELECT * FROM ${SOURCE_FILE_TABLE}`;
 
   return await postGreConnection
     .query(sql)
-    .then((res) => {
-      return res.rows.map((row) => {
-        return {
-          id: row.id,
-          folderPath: row.folder_path,
-          fileName: row.file_name,
-        };
-      });
+    .then((result) => {
+      return getSourceFilesFromQueryResult(result);
     })
     .catch((err) => {
       console.log(err);
@@ -161,12 +175,8 @@ const getSourceFileByFileId = async (fileId) => {
 
   return await postGreConnection
     .query(sql, params)
-    .then((res) => {
-      return {
-        id: res.rows[0].id,
-        folderPath: res.rows[0].folder_path,
-        fileName: res.rows[0].file_name,
-      };
+    .then((result) => {
+      return getSourceFileFromQueryResult(result);
     })
     .catch((err) => {
       console.log(err);
@@ -185,33 +195,8 @@ const getSourceFileByFolderPathAndFileName = async ({
 
   return await postGreConnection
     .query(sql, params)
-    .then((res) => {
-      return {
-        id: res.rows[0].id,
-        folderPath: res.rows[0].folder_path,
-        fileName: res.rows[0].file_name,
-      };
-    })
-    .catch((err) => {
-      console.log(err);
-      return;
-    });
-};
-
-const getSourceFileByFilePath = async (filePath) => {
-  const sql =
-    `SELECT * FROM ${SOURCE_FILE_TABLE}\n` +
-    `WHERE (folder_path || '\\\\' || file_name) = $1`;
-  const params = [filePath];
-
-  return await postGreConnection
-    .query(sql, params)
-    .then((res) => {
-      return {
-        id: res.rows[0].id,
-        folderPath: res.rows[0].folder_path,
-        fileName: res.rows[0].file_name,
-      };
+    .then((result) => {
+      return getSourceFileFromQueryResult(result);
     })
     .catch((err) => {
       console.log(err);
@@ -274,14 +259,8 @@ const getClassSourceFilesByParentClassFileId = async (fileId) => {
 
   return await postGreConnection
     .query(sql, params)
-    .then((res) => {
-      return res.rows.map((row) => {
-        return {
-          id: row.id,
-          folderPath: row.folder_path,
-          fileName: row.file_name,
-        };
-      });
+    .then((result) => {
+      return getSourceFilesFromQueryResult(result);
     })
     .catch((err) => {
       console.log(err);
@@ -322,14 +301,8 @@ const getRecursiveClassSourceFilesByParentClassFileId = async (fileId) => {
 
   return await postGreConnection
     .query(sql, params)
-    .then((res) => {
-      return res.rows.map((row) => {
-        return {
-          id: row.id,
-          folderPath: row.folder_path,
-          fileName: row.file_name,
-        };
-      });
+    .then((result) => {
+      return getSourceFilesFromQueryResult(result);
     })
     .catch((err) => {
       console.log(err);
@@ -372,7 +345,6 @@ module.exports = {
   getAllSourceFiles,
   getSourceFileByFileId,
   getSourceFileByFolderPathAndFileName,
-  getSourceFileByFilePath,
   getRootSourceFiles,
   getSourceClassesByFileId,
   getClassSourceFilesByParentClassFileId,
